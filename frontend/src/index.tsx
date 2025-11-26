@@ -1,0 +1,15 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import "sanitize.css";
+import { BookStoreThemeProvider } from './context/themeContext';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+    <BookStoreThemeProvider>
+        <App />
+    </BookStoreThemeProvider>
+);
+
