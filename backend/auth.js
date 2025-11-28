@@ -4,20 +4,24 @@ dotenv.config();
 
 const ensureAuthorization = (req, res) => {
     try {
-        let receivedJwt = req.headers["authorization"];
-        console.log("received Jwt : ", receivedJwt);
+        const authHeader = req.headers["authorization"];
+        console.log("received Jwt: ", authHeader);
 
-        if (receivedJwt) {
-            let decodedJwt = jwt.verify(receivedJwt, process.env.PRIVATE_KEY);
-            console.log(decodedJwt);
-            return decodedJwt;
-        } else { 
-            throw new ReferenceError("jwt must be provided");
+        // Authorization 헤더가 없으면 (로그인 안한 상태)
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new ReferenceError("no token");
         }
-    } catch (err) {
-        console.log(err.name);
-        console.log(err.message);
 
+        // "Bearer xxx" → "xxx"만 추출
+        const token = authHeader.split("Bearer ")[1];
+
+        // 토큰 검증
+        const decoded = jwt.verify(token, process.env.PRIVATE_KEY);
+        console.log("decoded token:", decoded);
+
+        return decoded;
+    } catch (err) {
+        console.log(err.name, err.message);
         return err;
     }
 };

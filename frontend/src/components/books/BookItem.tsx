@@ -6,6 +6,7 @@ import { FaHeart } from "react-icons/fa6";
 import type { ViewMode } from "./BooksViewSwitcher";
 import "styled-components";
 import type { Theme } from "../../style/theme";
+import { Link } from "react-router-dom";
 
 interface Props {
     book: Book;
@@ -17,39 +18,46 @@ const HeartIcon = FaHeart as unknown as React.ComponentType;
 function BookItem({ book, $view }: Props) {
     return (
         <BookItemStyle $view={$view}>
-            <div className="img">
-                <img src={getImgSrc(book.img)} alt={book.title} />
-            </div>
+            <Link to={`/books/${book.id}`}>
+                <div className="img">
+                    <img src={getImgSrc(book.img)} alt={book.title} />
+                </div>
 
-            <div className="content">
-                <h2 className="title">{book.title}</h2>
-                <p className="summary">{book.summary}</p>
-                <p className="author">{book.author}</p>
-                <div className="bottom">
-                    <div className="price">{formatNumber(book.price)}원</div>
+                <div className="content">
+                    <h2 className="title">{book.title}</h2>
+                    <p className="summary">{book.summary}</p>
+                    <p className="author">{book.author}</p>
+                    <div className="bottom">
+                        <div className="price">
+                            {formatNumber(book.price)}원
+                        </div>
 
-                    <div className="likes">
-                        <HeartIcon />
-                        <span>{book.likes}</span>
+                        <div className="likes">
+                            <HeartIcon />
+                            <span>{book.likes}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Link>
         </BookItemStyle>
     );
 }
 
 const BookItemStyle = styled.div<{ theme: Theme; $view: ViewMode }>`
-    display: flex;
+    a {
+        display: flex;
 
-    /* ⭐ view 모드에 따라 레이아웃 변경 */
-    flex-direction: ${({ $view }) => ($view === "grid" ? "column" : "row")};
-    align-items: ${({ $view }) =>
-        $view === "grid" ? "stretch" : "flex-start"};
+        /* ⭐ view 모드에 따라 레이아웃 변경 */
+        flex-direction: ${({ $view }) => ($view === "grid" ? "column" : "row")};
+        align-items: ${({ $view }) =>
+            $view === "grid" ? "stretch" : "flex-start"};
 
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-    border-radius: ${({ theme }) => theme.borderRadius.default};
-    overflow: hidden;
-    gap: ${({ $view }) => ($view === "grid" ? "0" : "16px")};
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+        border-radius: ${({ theme }) => theme.borderRadius.default};
+        overflow: hidden;
+        gap: ${({ $view }) => ($view === "grid" ? "0" : "16px")};
+        text-decoration: none;
+    }
 
     /* ⭐ 이미지 영역 */
     .img {

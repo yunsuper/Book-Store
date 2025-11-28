@@ -40,15 +40,15 @@ interface LoginResponse {
 export const login = async (data: { email: string; password: string }) => {
     const response = await httpClient.post("/users/login", data);
 
-    // 백엔드 응답: results 배열
-    const [user] = response.data;
+    // 🔥 토큰 저장!
+    localStorage.setItem("token", response.data.token);
 
     return {
         success: true,
-        token: "COOKIE", // 실제 JWT는 쿠키에 저장됨
         user: {
-            id: user.id,
-            email: user.email,
+            id: response.data.id,
+            email: response.data.email,
         },
+        token: response.data.token,
     };
 };

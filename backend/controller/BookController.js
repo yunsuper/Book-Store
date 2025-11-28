@@ -60,34 +60,50 @@ const allBooks = (req, res) => {
     });
 };
 
+const isValidAuth = (authorization) => {
+    return (
+        authorization &&
+        typeof authorization === "object" &&
+        !(authorization instanceof ReferenceError) &&
+        !(authorization instanceof jwt.TokenExpiredError) &&
+        !(authorization instanceof jwt.JsonWebTokenError) &&
+        authorization.id
+    );
+};
+
 // 개별 도서 조회
 const bookDetail = (req, res) => {
     let book_id = req.params.id;
-    let authorization = ensureAuthorization(req, res);
+    const authorization = ensureAuthorization(req, res);
+    const isLoggedIn = isValidAuth(authorization);
 
-    if (authorization instanceof jwt.TokenExpiredError) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({
-            message: "로그인 세션이 만료되었습니다. 다시 로그인해주세요.",
-        });
-    }
-    if (authorization instanceof jwt.JsonWebTokenError) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            message: "잘못된 토큰입니다.",
-        });
-    }
+    // 🔹 기본 SELECT (liked 없이)
+    let sql = `
+        SELECT 
+            books.*,
+            category.category_name AS categoryName,
+            (SELECT count(*) FROM likes WHERE liked_book_id = books.id) AS likes
+    `;
+    let values = [];
 
-    let sql = `SELECT *, (SELECT count(*) FROM likes WHERE liked_book_id=books.id) AS likes`;
-    let values = []; // 처음에는 로그인 했는지 안했는지 모르므로 빈배열로 시작
-
-    if (!(authorization instanceof ReferenceError)) {
-        //로그인 상태이면 => liked 추가해서
-        sql += `, (SELECT EXISTS(SELECT * FROM likes WHERE user_id = ? AND liked_book_id = ?)) AS liked`;
+    // 🔹 로그인 했을 때만 liked 포함
+    if (isLoggedIn) {
+        sql += `,
+            (SELECT EXISTS(
+                SELECT * FROM likes 
+                WHERE user_id = ? AND liked_book_id = ?
+            )) AS liked
+        `;
         values.push(authorization.id, book_id);
     }
-    // 로그인 상태가 아니면 => liked 빼고 보내주면 되고
-    sql += ` FROM books LEFT JOIN category 
+
+    sql += `
+        FROM books
+        LEFT JOIN category
             ON books.category_id = category.category_id
-            WHERE books.id = ?`;
+        WHERE books.id = ?
+    `;
+
     values.push(book_id);
 
     conn.query(sql, values, (err, results) => {
@@ -96,14 +112,25 @@ const bookDetail = (req, res) => {
             return res.status(StatusCodes.BAD_REQUEST).end();
         }
 
-        if (results[0]) {             
-                results[0].pubDate = results[0].pub_date;
-                delete results[0].pub_date;
-            
-            return res.status(StatusCodes.OK).json(results[0]);
-        } else return res.status(StatusCodes.NOT_FOUND).end();
+        if (!results[0]) {
+            return res.status(StatusCodes.NOT_FOUND).end();
+        }
+
+        const book = results[0];
+
+        // camelCase 변환
+        book.pubDate = book.pub_date;
+        delete book.pub_date;
+
+        // 로그인 안 한 경우 liked = 0 기본값
+        if (!isLoggedIn) {
+            book.liked = 0;
+        }
+
+        return res.status(StatusCodes.OK).json(book);
     });
-}
+};
+
 
 
 module.exports = {

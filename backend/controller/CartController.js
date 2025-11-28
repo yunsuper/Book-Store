@@ -1,112 +1,112 @@
-const ensureAuthorization = require("../auth"); // 인증 모듈
+const ensureAuthorization = require("../auth");
 const jwt = require("jsonwebtoken");
 const conn = require("../mariadb");
 const { StatusCodes } = require("http-status-codes");
 
-// 장바구니 담기
+// 🔍 공통 인증 유효성 검사
+const isValidAuth = (authorization) => {
+    return (
+        authorization &&
+        typeof authorization === "object" &&
+        !(authorization instanceof ReferenceError) &&
+        !(authorization instanceof jwt.TokenExpiredError) &&
+        !(authorization instanceof jwt.JsonWebTokenError) &&
+        authorization.id
+    );
+};
+
+// -------------------------------
+// 📌 장바구니 담기
+// -------------------------------
 const addToCart = (req, res) => {
     const { book_id, quantity } = req.body;
+    const authorization = ensureAuthorization(req, res);
 
-    let authorization = ensureAuthorization(req, res);
-
-    if (authorization instanceof jwt.TokenExpiredError) {
+    if (!isValidAuth(authorization)) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
-            message: "로그인 세션이 만료되었습니다. 다시 로그인해주세요.",
-        });
-    } else if (authorization instanceof jwt.JsonWebTokenError) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            message: "잘못된 토큰입니다.",
-        });
-    } else {
-        let sql =
-            "INSERT INTO cartItems (book_id, quantity, user_id) VALUES (?, ?, ?)";
-        values = [book_id, quantity, authorization.id];
-        conn.query(sql, values, (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(StatusCodes.BAD_REQUEST).end();
-            }
-
-            results.map(function (result) {
-                result.bookId = result.book_id;
-                delete result.book_id;
-            });
-
-            return res.status(StatusCodes.OK).json(results);
+            message: "로그인이 필요합니다.",
         });
     }
-};
 
-// 장바구니 아이템 목록 조회 / 선택된 장바구니 아이템 목록 조회
-const getCartItems = (req, res) => {
-    const { selected } = req.body ||{}; //selected = [1, 3], 
-    // req.body가 없더라도 빈 객체로 대체, selected = undefined 
-    // 구조분해 하다가 에러나는것. 
+    const sql =
+        "INSERT INTO cartItems (book_id, quantity, user_id) VALUES (?, ?, ?)";
+    const values = [book_id, quantity, authorization.id];
 
-    let authorization = ensureAuthorization(req, res);
-
-    if (authorization instanceof jwt.TokenExpiredError) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({
-            message: "로그인 세션이 만료되었습니다. 다시 로그인해주세요.",
-        });
-    } else if (authorization instanceof jwt.JsonWebTokenError) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            message: "잘못된 토큰입니다.",
-        });
-    } else {
-        // 장바구니 보기
-        let sql = `SELECT cartItems.id, book_id, title, summary, quantity, price 
-                    FROM cartItems LEFT JOIN books
-                    ON cartItems.book_id = books.id WHERE user_id=?`;
-        let values = [authorization.id];
-
-        if (selected) {
-            // 주문서 작성 시 '선택한 장바구니 목록 조회'
-            sql += ` AND cartItems.id IN (?)`;
-            values.push(selected);
+    conn.query(sql, values, (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(StatusCodes.BAD_REQUEST).end();
         }
 
-        conn.query(sql, values, (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(StatusCodes.BAD_REQUEST).end();
-            }
-
-            results.map(function (result)  {
-                result.bookId = result.book_id;
-                delete result.book_id;
-            });
-
-            return res.status(StatusCodes.OK).json(results);
-        });
-    }
+        return res.status(StatusCodes.OK).json(results);
+    });
 };
 
-// 장바구니 도서 하나씩 삭제라서 단수형으로
-const removeCartItem = (req, res) => {
-    const cartItemId = req.params.id;
+// -------------------------------
+// 📌 장바구니 아이템 조회
+// -------------------------------
+const getCartItems = (req, res) => {
+    const { selected } = req.body || {};
+    const authorization = ensureAuthorization(req, res);
 
-    let authorization = ensureAuthorization(req, res);
-
-    if (authorization instanceof jwt.TokenExpiredError) {
+    if (!isValidAuth(authorization)) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
-            message: "로그인 세션이 만료되었습니다. 다시 로그인해주세요.",
-        });
-    } else if (authorization instanceof jwt.JsonWebTokenError) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            message: "잘못된 토큰입니다.",
-        });
-    } else {
-        let sql = "DELETE FROM cartItems WHERE id = ?";
-        conn.query(sql, cartItemId, (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(StatusCodes.BAD_REQUEST).end();
-            }
-
-            return res.status(StatusCodes.OK).json(results);
+            message: "로그인이 필요합니다.",
         });
     }
+
+    let sql = `
+        SELECT cartItems.id, book_id, title, summary, quantity, price 
+        FROM cartItems 
+        LEFT JOIN books ON cartItems.book_id = books.id 
+        WHERE user_id = ?
+    `;
+
+    let values = [authorization.id];
+
+    if (selected) {
+        sql += " AND cartItems.id IN (?)";
+        values.push(selected);
+    }
+
+    conn.query(sql, values, (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(StatusCodes.BAD_REQUEST).end();
+        }
+
+        results.forEach((item) => {
+            item.bookId = item.book_id;
+            delete item.book_id;
+        });
+
+        return res.status(StatusCodes.OK).json(results);
+    });
+};
+
+// -------------------------------
+// 📌 장바구니에서 아이템 삭제
+// -------------------------------
+const removeCartItem = (req, res) => {
+    const cartItemId = req.params.id;
+    const authorization = ensureAuthorization(req, res);
+
+    if (!isValidAuth(authorization)) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+            message: "로그인이 필요합니다.",
+        });
+    }
+
+    const sql = "DELETE FROM cartItems WHERE id = ?";
+
+    conn.query(sql, cartItemId, (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(StatusCodes.BAD_REQUEST).end();
+        }
+
+        return res.status(StatusCodes.OK).json(results);
+    });
 };
 
 module.exports = {

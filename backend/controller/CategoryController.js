@@ -2,7 +2,7 @@ const conn = require("../mariadb");
 const { StatusCodes } = require("http-status-codes");
 
 const allCategory = (req, res) => {
-    console.log("🔥 CategoryController 로딩됨");
+    // console.log("🔥 CategoryController 로딩됨");
         // 카테고리 전체 목록 리스트
         let sql = "SELECT * FROM category";
         conn.query(sql, (err, results) => {

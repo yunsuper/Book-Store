@@ -7,6 +7,7 @@ import { login } from "../api/auth.api";
 import { useAlert } from "../hooks/useAlert";
 import { SignupStyle } from "./Signup";
 import { useAuthStore } from "../store/authStore";
+import { useEffect } from "react";
 
 export interface SignupProps {
     email: string;
@@ -19,16 +20,17 @@ function Login() {
 
     const { isLoggedIn, storeLogin } = useAuthStore();
 
+    useEffect(() => {
+        if (isLoggedIn) {
+            navigate("/");
+        }
+    }, [isLoggedIn, navigate]);
+
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<SignupProps>();
-
-    // 이미 로그인한 상태면 홈으로 보내기 (선택)
-    if (isLoggedIn) {
-        navigate("/");
-    }
 
     const onSubmit = async (data: SignupProps) => {
     try {

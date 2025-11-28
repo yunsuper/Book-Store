@@ -10,6 +10,9 @@ import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
 import Books from "./pages/Books";
+import BookDetail from "./pages/BookDetail";
+import Carts from "./pages/Carts";
+
 
 // const router = createBrowserRouter([
 //     {
@@ -53,6 +56,14 @@ import Books from "./pages/Books";
 //             </Layout>
 //         ),
 //     },
+//      {
+//          path: "/book/:bookId"
+//          element: (
+//             <Layout>
+//                 <BookDetail />
+//             </Layout>
+//         ),
+//      }
 // ]);
 
 const router = createBrowserRouter([
@@ -66,6 +77,8 @@ const router = createBrowserRouter([
             { path: "signup", element: <Signup /> },
             { path: "reset", element: <ResetPassword /> },
             { path: "login", element: <Login /> },
+            { path: "Books/:bookId", element: <BookDetail /> },
+            { path: "cart", element: <Carts /> },
         ],
     },
 ]);
