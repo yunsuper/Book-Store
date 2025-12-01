@@ -3,12 +3,9 @@ import InputText from "../components/common/InputText";
 import Button from "../components/common/Button";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { resetPassword, resetRequest } from "../api/auth.api";
-import { useNavigate } from "react-router-dom";
-import { useAlert } from "../hooks/useAlert";
 import { SignupStyle } from "./Signup";
 import { useState } from "react";
-
+import { useAuth } from "../hooks/useAuth";
 
 export interface SignupProps {
     email: string;
@@ -16,9 +13,8 @@ export interface SignupProps {
 }
 
 function ResetPassword() {
-    const navigate = useNavigate();
-    const showAlert = useAlert();
     const [resetRequested, setResetRequested] = useState(false);
+    const { resetRequestHandler, resetPasswordHandler } = useAuth();
 
     const {
         register,
@@ -28,39 +24,28 @@ function ResetPassword() {
     } = useForm<SignupProps>();
 
     const onSubmit = async (data: SignupProps) => {
-        try {
-            if (resetRequested) {
-                // 2단계: 비밀번호 변경
-                const res = await resetPassword({
-                    email: getValues("email"), // 수정 방지
-                    password: data.password,
-                });
+        const email = getValues("email");
 
-                showAlert(res.message || "비밀번호가 변경되었습니다.");
-                navigate("/login");
-            } else {
-                // 1단계: 초기화 요청
-                const res = await resetRequest({ email: data.email });
-
-                showAlert(res.message || "초기화 메일을 전송했습니다.");
-                setResetRequested(true);
-            }
-        } catch (error: any) {
-            console.error(error);
-            showAlert(error.response?.data?.message || "요청에 실패했습니다.");
+        if (!resetRequested) {
+            const ok = await resetRequestHandler(email);
+            if (ok) setResetRequested(true); 
+            return;
         }
+
+        await resetPasswordHandler(email, data.password);
     };
 
     return (
         <>
             <Title size="large">비밀번호 초기화</Title>
+
             <SignupStyle>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <fieldset>
                         <InputText
                             placeholder="이메일"
                             inputType="email"
-                            disabled={resetRequested} // 🔥 disable 처리
+                            disabled={resetRequested}
                             {...register("email", { required: true })}
                         />
                         {errors.email && (
@@ -102,4 +87,3 @@ function ResetPassword() {
 }
 
 export default ResetPassword;
-

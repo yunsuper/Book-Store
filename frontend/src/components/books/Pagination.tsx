@@ -1,26 +1,26 @@
-import styled from "styled-components";
-import type { Pagination as IPagination} from "../../models/pagination.model";
-import { LIMIT } from "../../hooks/constants/pagination";
-import Button from "../common/Button";
 import { useSearchParams } from "react-router-dom";
-import { QUERYSTRING } from "../../hooks/constants/querystring";
+import styled from "styled-components";
+import { LIMIT } from "../../constants/pagination";
+import { QUERYSTRING } from "../../constants/querystring";
+import type { Pagination as IPagination } from "../../models/pagination.model";
+import Button from "../common/Button";
 
-interface Props{
+interface Props {
     pagination: IPagination;
 }
 
-function Pagination({pagination}: Props) {
+function Pagination({ pagination }: Props) {
     const [searchParams, setSearchParams] = useSearchParams();
-    const {totalCount, currentPage} = pagination;
-    const pages: number= Math.ceil(totalCount/ LIMIT);
+    const { totalCount, currentPage } = pagination;
+    const pages: number = Math.ceil(totalCount / LIMIT);
 
-    const handleClickPage= (page: number)=>{
+    const handleClickPage = (page: number) => {
         const newSearchParams = new URLSearchParams(searchParams);
 
         newSearchParams.set(QUERYSTRING.PAGE, page.toString());
 
         setSearchParams(newSearchParams);
-    }
+    };
 
     return (
         <PaginationStyle>
@@ -55,13 +55,12 @@ const PaginationStyle = styled.div`
     align-items: center;
     padding: 24px;
 
-    ol{
+    ol {
         list-style: none;
         display: flex;
         gap: 8px;
         margin: 0;
     }
-
 `;
 
 export default Pagination;

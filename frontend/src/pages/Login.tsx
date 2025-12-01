@@ -3,22 +3,18 @@ import InputText from "../components/common/InputText";
 import Button from "../components/common/Button";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { login } from "../api/auth.api";
-import { useAlert } from "../hooks/useAlert";
 import { SignupStyle } from "./Signup";
-import { useAuthStore } from "../store/authStore";
+import { useAuth } from "../hooks/useAuth";
 import { useEffect } from "react";
 
-export interface SignupProps {
+export interface LoginProps {
     email: string;
     password: string;
 }
 
 function Login() {
     const navigate = useNavigate();
-    const showAlert = useAlert();
-
-    const { isLoggedIn, storeLogin } = useAuthStore();
+    const { isLoggedIn, loginHandler } = useAuth(); // ⭐  useAuth 사용
 
     useEffect(() => {
         if (isLoggedIn) {
@@ -30,29 +26,16 @@ function Login() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<SignupProps>();
+    } = useForm<LoginProps>();
 
-    const onSubmit = async (data: SignupProps) => {
-    try {
-        const res = await login(data);
-
-        // Zustand 상태 업데이트
-        storeLogin(res.token);
-
-        // alert (UI 사이드 이펙트)
-        showAlert("로그인 완료되었습니다.");
-
-        // navigate는 마지막에!
-        navigate("/");
-
-    } catch (error) {
-        showAlert("로그인이 실패했습니다.");
-    }
-};
+    const onSubmit = (data: LoginProps) => {
+        loginHandler(data); // ⭐ 훅에서 처리
+    };
 
     return (
         <>
             <Title size="large">로그인</Title>
+
             <SignupStyle>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <fieldset>

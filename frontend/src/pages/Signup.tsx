@@ -2,10 +2,9 @@ import styled from "styled-components";
 import Title from "../components/common/Title";
 import InputText from "../components/common/InputText";
 import Button from "../components/common/Button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { signup } from "../api/auth.api";
-import { useAlert } from "../hooks/useAlert";
+import { useAuth } from "../hooks/useAuth";
 import type { Theme } from "../style/theme";
 
 export interface SignupProps {
@@ -14,8 +13,7 @@ export interface SignupProps {
 }
 
 function Signup() {
-    const navigate = useNavigate();
-    const showAlert = useAlert();
+    const { signupHandler } = useAuth();
 
     const {
         register,
@@ -23,23 +21,14 @@ function Signup() {
         formState: { errors },
     } = useForm<SignupProps>();
 
-    const onSubmit = async (data: SignupProps) => {
-        try {
-            const res = await signup(data);
-
-            showAlert("회원가입이 완료되었습니다.");
-            navigate("/login");
-        } catch (error: any) {
-            console.error(error);
-            showAlert(
-                error.response?.data?.message || "회원가입에 실패했습니다."
-            );
-        }
+    const onSubmit = (data: SignupProps) => {
+        signupHandler(data); // ⭐ useAuth 내부 로직 호출
     };
 
     return (
         <>
             <Title size="large">회원가입</Title>
+
             <SignupStyle>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <fieldset>

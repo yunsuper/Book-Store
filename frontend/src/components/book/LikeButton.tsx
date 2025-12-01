@@ -10,15 +10,18 @@ declare module "styled-components" {
 
 const HeartIcon = FaHeart as unknown as React.ComponentType;
 
-
-interface Props{
+interface Props {
     book: BookDetail;
     onClick: () => void;
 }
 
-function LikeButton({book, onClick}: Props) {
+function LikeButton({ book, onClick }: Props) {
     return (
-        <LikeButtonStyle size="medium" schema={book.liked ? "like" : "normal"} onClick={onClick}>
+        <LikeButtonStyle
+            size="medium"
+            schema={book.liked ? "like" : "normal"}
+            onClick={onClick}
+        >
             <HeartIcon />
             {book.likes}
         </LikeButtonStyle>
@@ -29,9 +32,9 @@ const LikeButtonStyle = styled(Button)`
     display: flex;
     gap: 6px;
 
-    svg{
+    svg {
         color: inherit;
-        *{
+        * {
             color: inherit;
         }
     }

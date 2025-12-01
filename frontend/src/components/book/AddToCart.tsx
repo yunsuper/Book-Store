@@ -7,29 +7,27 @@ import type { Theme } from "../../style/theme";
 import { Link } from "react-router-dom";
 import { useBook } from "../../hooks/useBook";
 
-interface Props{
+interface Props {
     book: BookDetail;
 }
 
-function AddToCart({book}: Props) {
+function AddToCart({ book }: Props) {
     const [quantity, setQuantity] = useState<number>(1);
-    const {addToCart, cartAdded} = useBook(book.id.toString());
+    const { addToCart, isCartAdded, isCartAdding } = useBook(
+        book.id.toString()
+    );
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuantity(Number(e.target.value));
     };
 
-    const handleIncrease =()=>{ 
-        setQuantity(quantity+1);
-    }
-
-    const handleDecrease =()=>{
-        if (quantity === 1) return;
-            setQuantity(quantity-1);
-    }
+    const handleIncrease = () => setQuantity(quantity + 1);
+    const handleDecrease = () => {
+        if (quantity > 1) setQuantity(quantity - 1);
+    };
 
     return (
-        <AddToCartStyle $added={cartAdded}>
+        <AddToCartStyle $added={isCartAdded}>
             <div>
                 <InputText
                     inputType="number"
@@ -43,26 +41,32 @@ function AddToCart({book}: Props) {
                     -
                 </Button>
             </div>
-            <Button size="medium" schema="primary" onClick={()=>addToCart(quantity)}>
-                장바구니 담기
-            </Button>            
-                <div className="added">
-                    <p>장바구니에 추가되었습니다.</p>
-                    <Link to="/cart">장바구니로 이동</Link>
-                </div>           
+
+            <Button
+                size="medium"
+                schema="primary"
+                onClick={() => addToCart(quantity)}
+                disabled={isCartAdding}
+            >
+                {isCartAdding ? "담는 중..." : "장바구니 담기"}
+            </Button>
+
+            <div className="added">
+                <p>장바구니에 추가되었습니다.</p>
+                <Link to="/cart">장바구니로 이동</Link>
+            </div>
         </AddToCartStyle>
     );
 }
 
-interface AddToCartStyleProps{
+interface AddToCartStyleProps {
     $added: boolean;
-} 
+}
 
 const AddToCartStyle = styled.div<AddToCartStyleProps & { theme: Theme }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     position: relative;
 
     .added {

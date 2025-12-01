@@ -3,6 +3,6 @@ export interface Cart{
     bookId: number;
     title: string;
     summary: string;
-    quatity: number;
+    quantity: number;
     price: number;
 }

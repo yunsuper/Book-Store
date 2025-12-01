@@ -1,38 +1,47 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
-import type { Book } from "../models/book.model";
-import type { Pagination } from "../models/pagination.model";
 import { fetchBooks } from "../api/books.api";
-import { QUERYSTRING } from "../hooks/constants/querystring";
-import { LIMIT } from "./constants/pagination";
+import { LIMIT } from "../constants/pagination";
+import { QUERYSTRING } from "../constants/querystring";
+import type { FetchBooksResponse } from "../api/books.api"; // 👈 타입 import 필요
 
-export const useBooks=()=>{
-    const location = useLocation();;
-    
-    const [books, setBooks] = useState<Book[]>([]);
-    const [pagination, setPagination] = useState<Pagination>({
-        currentPage: 1,
-        totalCount: 0,
+export const useBooks = () => {
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+
+    const categoryId = params.get(QUERYSTRING.CATEGORY_ID)
+        ? Number(params.get(QUERYSTRING.CATEGORY_ID))
+        : undefined;
+
+    const news = params.get(QUERYSTRING.NEWS) === "true" ? true : undefined;
+
+    const currentPage = params.get(QUERYSTRING.PAGE)
+        ? Number(params.get(QUERYSTRING.PAGE))
+        : 1;
+
+    const queryKey = ["books", { categoryId, news, currentPage, limit: LIMIT }];
+
+    const { data, isLoading, isError, error } = useQuery<FetchBooksResponse>({
+        queryKey,
+        queryFn: () =>
+            fetchBooks({
+                category_id: categoryId,
+                news,
+                currentPage,
+                limit: LIMIT,
+            }),
+
+        // v5에서 keepPreviousData는 제거됨
+        placeholderData: (prev) => prev, // 👈 이전 데이터 유지 (v4 기능 대신)
+        staleTime: 1000 * 60 * 2,
     });
-    const [isEmpty, setIsEmpty] = useState(true);
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-
-        console.log("params", params.get("category_id"));
-
-        fetchBooks ({
-            category_id: params.get(QUERYSTRING.CATEGORY_ID) ? Number(params.get(QUERYSTRING.CATEGORY_ID)):undefined,
-            news: params.get(QUERYSTRING.NEWS) === "true" ? true : undefined,
-            currentPage: params.get(QUERYSTRING.PAGE) ? Number(params.get(QUERYSTRING.PAGE)):1,
-            limit: LIMIT,
-        }).then(({books, pagination})=>{
-            setBooks(books);
-            setPagination(pagination);
-            setIsEmpty(books.length === 0);
-        })
-    }, [location.search]);
-
-    return {books, pagination, isEmpty, setBooks, setPagination};
+    return {
+        books: data?.books ?? [],
+        pagination: data?.pagination ?? { currentPage: 1, totalCount: 0 },
+        isEmpty: (data?.books?.length ?? 0) === 0,
+        isLoading,
+        isError,
+        error,
+    };
 };
-

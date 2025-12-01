@@ -1,9 +1,16 @@
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
-export const formatNumber = (number: number) => {
-    return number.toLocaleString();
+dayjs.extend(customParseFormat);
+
+export const formatNumber = (value?: number | null) => {
+    const safeValue = value ?? 0; // undefined/null → 0으로 처리
+    return safeValue.toLocaleString();
 };
 
-export const formatDate = (date: string, format?: string) => {
-    return dayjs(date).format(format ? format :"YYYY년 MM월 DD일");   
+export const formatDate = (
+    date: string | Date,
+    format= "YYYY년 MM월 DD일"
+) => {
+    return dayjs(date, "YYYY-MM-DD HH:mm:ss").format(format);
 };

@@ -77,15 +77,15 @@ const login = (req, res) => {
                 { id: loginUser.id, email: loginUser.email },
                 process.env.PRIVATE_KEY,
                 {
-                    expiresIn: "1h",
+                    expiresIn: "12h",
                     issuer: "bookshop",
                 }
             );
 
             // 쿠키 저장
-            res.cookie("token", token, {
-                httpOnly: true,
-            });
+            // res.cookie("token", token, {
+            //     httpOnly: true,
+            // });
 
             return res.status(StatusCodes.OK).json({
                 id: loginUser.id,

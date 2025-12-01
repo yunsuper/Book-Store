@@ -5,18 +5,15 @@ import Pagination from "../components/books/Pagination";
 import BooksViewSwitcher from "../components/books/BooksViewSwitcher";
 import BooksList from "../components/books/BooksList";
 import BooksFilter from "../components/books/BooksFilter";
-import { useLocation } from "react-router-dom";
 import { useBooks } from "../hooks/useBooks";
+import Loading from "../components/common/Loading";
 
 function Books() {
-    const {books, pagination, isEmpty}= useBooks();
-    const location = useLocation();
-    const params = new URLSearchParams(location.search);
-    const categoryIdParam = params.get("category_id");
-    const categoryId = categoryIdParam ? Number(categoryIdParam) : null;
+    const { books, pagination, isEmpty, isLoading, isError, error } =
+        useBooks();
 
-    console.log("Books search:", location.search);
-    console.log("categoryId:", categoryId);
+    if (isLoading) return <Loading />;
+    if (isError) return <p>에러 발생: {String(error)}</p>;
 
     return (
         <>
@@ -26,13 +23,16 @@ function Books() {
                     <BooksFilter />
                     <BooksViewSwitcher />
                 </div>
+
+                {/* 정상 렌더링 */}
                 {!isEmpty && <BooksList books={books} />}
                 {isEmpty && <BooksEmpty />}
                 {!isEmpty && <Pagination pagination={pagination} />}
             </BooksStyle>
         </>
-    );  
+    );
 }
+
 
 const BooksStyle = styled.div`
     display: flex;

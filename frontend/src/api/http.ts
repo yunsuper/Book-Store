@@ -44,3 +44,21 @@ export const createClient = (config?: AxiosRequestConfig) => {
 };
 
 export const httpClient = createClient();
+
+type HttpMethod = "get" | "post" | "put" | "delete";
+
+export const requestHandler = async <T>(
+    method: HttpMethod,
+    url: string,
+    payload?: T
+) => {
+    const needsBody = method === "post" || method === "put";
+
+    const response = await httpClient[method](
+        url,
+        needsBody ? payload : undefined
+    );
+
+    return response.data;
+};
+

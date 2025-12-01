@@ -11,48 +11,49 @@ import EllipsisBox from "../components/common/EllipsisBox";
 import LikeButton from "../components/book/LikeButton";
 import AddToCart from "../components/book/AddToCart";
 
-
 const bookInfoList = [
     {
         label: "카테고리",
         key: "categoryName",
-        filter: (book: IBookDetail) => 
-           <Link to={`/books?category_id=${book.category_id}`}>{book.categoryName}</Link>
+        filter: (book: IBookDetail) => (
+            <Link to={`/books?category_id=${book.category_id}`}>
+                {book.categoryName}
+            </Link>
+        ),
     },
     {
         label: "포맷",
-        key: "form"
+        key: "form",
     },
     {
         label: "페이지",
-        key: "pages"
+        key: "pages",
     },
     {
         label: "ISBN",
-        key: "isbn"
+        key: "isbn",
     },
     {
         label: "출간일",
         key: "pubDate",
         filter: (book: IBookDetail) => {
             return formatDate(book.pubDate);
-        }
+        },
     },
     {
         label: "가격",
         key: "price",
         filter: (book: IBookDetail) => {
             return `${formatNumber(book.price)} 원`;
-        }
+        },
     },
 ];
 
-
 function BookDetail() {
-    const {bookId} = useParams();
-    const { book, likeToggle } = useBook(bookId);
+    const { bookId } = useParams();
+    const { book, likeToggle } = useBook(bookId ? String(bookId) : undefined);
 
-    if(!book) return null;
+    if (!book) return null;
 
     return (
         <BookDetailStyle>
@@ -79,7 +80,9 @@ function BookDetail() {
                     <div className="like">
                         <LikeButton book={book} onClick={likeToggle} />
                     </div>
-                    <div className="add-cart"><AddToCart book={book} /></div>
+                    <div className="add-cart">
+                        <AddToCart book={book} />
+                    </div>
                 </div>
             </header>
             <div className="content">
@@ -101,10 +104,10 @@ const BookDetailStyle = styled.div<{ theme: Theme }>`
         padding: 0 0 24px 0;
 
         .img {
-            flex: 1; 
+            flex: 1;
             img {
-            width: 100%;
-            height: auto;
+                width: 100%;
+                height: auto;
             }
         }
 
@@ -113,23 +116,23 @@ const BookDetailStyle = styled.div<{ theme: Theme }>`
             display: flex;
             flex-direction: column;
             gap: 12px;
-            
+
             dl {
-            display: flex;
-            margin: 0;
+                display: flex;
+                margin: 0;
             }
             dt {
-            width: 80px;
-            color: ${({ theme }) => theme.color.secondary};
+                width: 80px;
+                color: ${({ theme }) => theme.color.secondary};
             }
             a {
-            color: ${({ theme }) => theme.color.primary};
+                color: ${({ theme }) => theme.color.primary};
             }
-        } 
+        }
     }
-        
-    .content{
-    /*. detail{
+
+    .content {
+        /*. detail{
             overflow-y: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
