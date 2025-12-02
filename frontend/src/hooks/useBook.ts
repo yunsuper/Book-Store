@@ -4,13 +4,17 @@ import { addCart } from "../api/carts.api";
 import { useAlert } from "./useAlert";
 import { useAuthStore } from "../store/authStore";
 import { queryClient } from "./queryClient";
-import type { BookDetail } from "../models/book.model";
+import { BookReviewItem, type BookDetail, type BookReviewItemWrite } from "../models/book.model";
+import { useEffect, useState } from "react";
+import { addBookReview, fetchBookReviews } from "../api/review.api";
+import { useToast } from "./useToast";
 
 export const useBook = (bookId: string | undefined) => {
     const { isLoggedIn } = useAuthStore();
     const { showAlert } = useAlert();
+    const [reviews, setReviews] = useState<BookReviewItem[]>([]);
+    const{showToast} = useToast();
 
-    // 안전하게 key 고정
     const key = String(bookId);
 
     // ---------------------------------------------------
@@ -34,26 +38,58 @@ export const useBook = (bookId: string | undefined) => {
         enabled: !!bookId,
     });
 
+     useEffect(() => {
+         if (!bookId) return;
+
+         fetchBookReviews(bookId).then((reviews) => {
+             setReviews(reviews);
+         });
+     }, [bookId]);
+
+     const addReview = (data:BookReviewItemWrite)=>{
+        if(!book) return;
+
+        addBookReview(book.id.toString(), data).then((res)=>{
+        //    fetchBookReviews(book.id.toString()).then((reviews) => {
+        //        setReviews(reviews);
+        //    });
+        showAlert(res?.message);
+        }   
+     )}
+
     // ---------------------------------------------------
     // 2) 좋아요 토글 (★ 캐시 직접 안 건드림)
     // ---------------------------------------------------
-    const likeMutation = useMutation({
-        mutationFn: async () => {
-            if (!book) throw new Error("도서 정보가 없습니다.");
+     type LikeMutationResult = {
+         action: "like" | "unlike";
+         res: any;
+     };
 
-            if (book.liked) {
-                // 이미 좋아요인 상태 → 취소
-                return await unlikeBook(book.id);
-            } else {
-                // 아직 좋아요 아님 → 추가
-                return await likeBook(book.id);
-            }
-        },
-        onSuccess: () => {
-            // ✅ 서버에서 최신 값 다시 가져오기
-            queryClient.invalidateQueries({ queryKey: ["book", key] });
-        },
-    });
+    const likeMutation =
+        useMutation <
+        LikeMutationResult>({
+            mutationFn: async () => {
+                if (!book) throw new Error("도서 정보가 없습니다.");
+
+                if (book.liked) {
+                    // 이미 좋아요인 상태 → 취소
+                    return { action: "unlike", res: await unlikeBook(book.id) };
+                } else {
+                    // 아직 좋아요 아님 → 추가
+                    return { action: "like", res: await likeBook(book.id) };
+                }
+            },
+            onSuccess: ({ action }) => {
+                // ✅ 서버에서 최신 값 다시 가져오기
+                queryClient.invalidateQueries({ queryKey: ["book", key] });
+
+                if (action === "unlike") {
+                    showToast("좋아요를 취소했습니다.", "info");
+                } else {
+                    showToast("좋아요를 성공했습니다.", "success");
+                }
+            },
+        });
 
     const likeToggle = () => {
         if (!isLoggedIn) {
@@ -85,6 +121,8 @@ export const useBook = (bookId: string | undefined) => {
 
     return {
         book,
+        reviews,
+        addReview,
         likeToggle,
         addToCart,
         isLoading,

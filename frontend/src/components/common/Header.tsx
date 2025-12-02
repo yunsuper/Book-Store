@@ -2,12 +2,18 @@ import styled from "styled-components";
 import { type Theme } from "../../style/theme";
 import logo from "../../assets/images/logo.png";
 import {FaRegUser, FaSignInAlt} from 'react-icons/fa';
+import { FaCircleUser } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { useCategory } from "../../hooks/useCategory";
 import { useAuthStore } from "../../store/authStore";
+import Dropdown from "./Dropdown";
+import ThemeSwithcer from "../header/ThemeSwitcher";
 
 const SignInIcon = FaSignInAlt as unknown as React.FC;
 const UserIcon = FaRegUser as unknown as React.FC;
+const UserIcons = FaCircleUser as unknown as React.ComponentType<
+    React.SVGProps<SVGSVGElement>
+>;
 
 function Header(){
     const {category} = useCategory();
@@ -41,35 +47,42 @@ function Header(){
                 </ul>
             </nav>
             <nav className="auth">
-                {isLoggedIn && (
-                    <ul>
-                        <li>
-                            <Link to="/cart">장바구니</Link>
-                        </li>
-                        <li>
-                            <Link to="/orderlist">주문 내역</Link>
-                        </li>
-                        <li>
-                            <button onClick={storelogout}>로그아웃</button>
-                        </li>
-                    </ul>
-                )}
-                {!isLoggedIn && (
-                    <ul>
-                        <li>
-                            <Link to="/login">
-                                <SignInIcon />
-                                로그인
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/signup">
-                                <UserIcon />
-                                회원가입
-                            </Link>
-                        </li>
-                    </ul>
-                )}
+                <Dropdown toggleButton={<UserIcons />}>
+                    <>
+                        {isLoggedIn && (
+                            <ul>
+                                <li>
+                                    <Link to="/cart">장바구니</Link>
+                                </li>
+                                <li>
+                                    <Link to="/orderlist">주문 내역</Link>
+                                </li>
+                                <li>
+                                    <button onClick={storelogout}>
+                                        로그아웃
+                                    </button>
+                                </li>
+                            </ul>
+                        )}
+                        {!isLoggedIn && (
+                            <ul>
+                                <li>
+                                    <Link to="/login">
+                                        <SignInIcon />
+                                        로그인
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/signup">
+                                        <UserIcon />
+                                        회원가입
+                                    </Link>
+                                </li>
+                            </ul>
+                        )}
+                        <ThemeSwithcer />
+                    </>
+                </Dropdown>
             </nav>
         </HeaderStyle>
     );
@@ -115,7 +128,9 @@ const HeaderStyle = styled.header<{ theme: Theme }>`
     .auth {
         ul {
             display: flex;
+            flex-direction: column;
             gap: 16px;
+            width: 100px;
 
             li {
                 a, button {
@@ -124,6 +139,8 @@ const HeaderStyle = styled.header<{ theme: Theme }>`
                     text-decoration: none;
                     display: flex;
                     align-items: center;
+                    justify-content: center;
+                    width: 100%;
                     line-height: 1;
                     background: none;
                     border: 0;
