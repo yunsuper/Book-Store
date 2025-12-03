@@ -16,3 +16,7 @@ export const addBookReview = async (bookId: string, data: BookReviewItemWrite) =
         `/reviews/${bookId}`
     );
 };
+
+export const fetchReviewAll=async()=>{
+    return await requestHandler<BookReviewItem[]>("get", "/reviews");
+}

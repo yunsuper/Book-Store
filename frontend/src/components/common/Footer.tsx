@@ -28,7 +28,7 @@ const FooterStyle = styled.footer<{ theme: Theme }>`
     justify-content: space-between;
 
     .logo {
-        img{
+        img {
             width: 140px;
         }
     }
@@ -38,6 +38,11 @@ const FooterStyle = styled.footer<{ theme: Theme }>`
             font-size: 0.75rem;
             color: ${({ theme }) => theme.color.text};
         }
+    }
+
+    @media ${({ theme }) => theme.device.mobile}{
+        flex-direction: column;
+        align-items: center;
     }
 `;
 

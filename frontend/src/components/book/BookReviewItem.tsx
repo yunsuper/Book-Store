@@ -52,35 +52,73 @@ function BookReviewItem({ review }: Props) {
     );
 }
 
-const BookReviewItemStyle = styled.div<{theme: Theme}>`
+const BookReviewItemStyle = styled.div<{ theme: Theme }>`
     display: flex;
     flex-direction: column;
     gap: 12px;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
     padding: 12px;
-    border-radius: ${({theme})=>theme.borderRadius.default};
+    border-radius: ${({ theme }) => theme.borderRadius.default};
 
-    .header{
+    .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         font-size: 0%.875rem;
-        color: ${({theme})=>theme.color.secondary};
+        color: ${({ theme }) => theme.color.secondary};
         padding: 0;
 
-        .star{
+        .star {
             padding: 0 0 0 8px;
-            svg{
-                color: ${({theme})=>theme.color.primary};            
+            svg {
+                color: ${({ theme }) => theme.color.primary};
             }
         }
     }
 
-    .content{
-        p{
+    .content {
+        p {
             font-size: 1rem;
             line-height: 1.5;
             margin: 0;
+        }
+    }
+
+    @media ${({ theme }) => theme.device.mobile} {
+        padding: 8px 10px;
+        gap: 8px;
+        border-radius: 8px;
+
+        .header {
+            font-size: 0.8rem;
+
+            div {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .star {
+                padding: 0;
+                svg {
+                    width: 12px;
+                    height: 12px;
+                }
+            }
+        }
+
+        .content {
+            p {
+                font-size: 0.85rem;
+                line-height: 1.35;
+
+                /* ⭐ 모바일에서 내용 너무 길지 않도록 제한 */
+                display: -webkit-box;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
     }
 `;

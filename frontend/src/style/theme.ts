@@ -4,6 +4,8 @@ export type HeadingSize = "small" | "medium" | "large";
 export type ButtonSize = "small" | "medium" | "large";
 export type ButtonSchema = "primary" | "normal"| "like";
 export type LayoutWidth = "large" | "medium" | "small";
+export type useMediaQuery = "mobile" | "tablet" | "desktop";
+
 
 export interface Theme {
     name: string;
@@ -32,6 +34,9 @@ export interface Theme {
             width: string;
         }
     };
+    device:{
+        [key in useMediaQuery]: string;
+    }
 }
 
 export const light: Theme = {
@@ -78,10 +83,10 @@ export const light: Theme = {
             backgroundColor: "lightgray",
             color: "black",
         },
-        like:{
+        like: {
             backgroundColor: "coral",
-            color: "white",       
-        }
+            color: "white",
+        },
     },
     borderRadius: {
         default: "4px",
@@ -96,6 +101,11 @@ export const light: Theme = {
         small: {
             width: "320px",
         },
+    },
+    device: {
+        mobile: "(max-width: 768px)",
+        tablet: "(max-width: 1024px)",
+        desktop: "(min-width: 1025px)",
     },
 };
 

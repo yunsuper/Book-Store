@@ -43,7 +43,7 @@ function BookItem({ book, $view }: Props) {
     );
 }
 
-const BookItemStyle = styled.div<{ theme: Theme; $view: ViewMode }>`
+export const BookItemStyle = styled.div<{ theme: Theme; $view: ViewMode }>`
     a {
         display: flex;
 
@@ -59,10 +59,11 @@ const BookItemStyle = styled.div<{ theme: Theme; $view: ViewMode }>`
         text-decoration: none;
     }
 
-    /* ⭐ 이미지 영역 */
     .img {
-        width: ${({ $view }) => ($view === "grid" ? "100%" : "160px")};
-        height: ${({ $view }) => ($view === "grid" ? "240px" : "160px")};
+        width: 100%;
+        /* ⭐ grid는 고정 height 삭제 → 비율로 고정! */
+        aspect-ratio: 1 / 1;
+        height: auto;
         flex-shrink: 0;
 
         img {
@@ -130,7 +131,30 @@ const BookItemStyle = styled.div<{ theme: Theme; $view: ViewMode }>`
             }
         }
     }
+
+    @media ${({ theme }) => theme.device.mobile} {
+        .content {
+            padding: 4px 6px;
+
+            .title {
+                font-size: 0.9rem;
+            }
+
+            .author {
+                font-size: 0.75rem;
+                margin-top: 2px;
+            }
+
+            .summary {
+                display: -webkit-box;
+                -webkit-line-clamp: 1; /* 한 줄 */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+    }
 `;
+
 
 
 export default BookItem;
